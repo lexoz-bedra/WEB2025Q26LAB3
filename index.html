@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2048</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1 class="title">2048</h1>
+      <div class="score-block">
+        <span class="score-label">Очки</span>
+        <span class="score-value" id="score">0</span>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-secondary" id="btn-leaders" aria-label="Таблица лидеров">Лидеры</button>
+        <button type="button" class="btn btn-primary" id="btn-restart" aria-label="Начать заново">Новая игра</button>
+      </div>
+    </header>
+
+    <main class="game-wrapper">
+      <div class="game-board">
+        <div class="game-grid" id="game-grid" role="grid" aria-label="Игровое поле 2048">
+          <div class="tile-cell" data-row="0" data-col="0"></div>
+          <div class="tile-cell" data-row="0" data-col="1"></div>
+          <div class="tile-cell" data-row="0" data-col="2"></div>
+          <div class="tile-cell" data-row="0" data-col="3"></div>
+          <div class="tile-cell" data-row="1" data-col="0"></div>
+          <div class="tile-cell" data-row="1" data-col="1"></div>
+          <div class="tile-cell" data-row="1" data-col="2"></div>
+          <div class="tile-cell" data-row="1" data-col="3"></div>
+          <div class="tile-cell" data-row="2" data-col="0"></div>
+          <div class="tile-cell" data-row="2" data-col="1"></div>
+          <div class="tile-cell" data-row="2" data-col="2"></div>
+          <div class="tile-cell" data-row="2" data-col="3"></div>
+          <div class="tile-cell" data-row="3" data-col="0"></div>
+          <div class="tile-cell" data-row="3" data-col="1"></div>
+          <div class="tile-cell" data-row="3" data-col="2"></div>
+          <div class="tile-cell" data-row="3" data-col="3"></div>
+        </div>
+
+        <div class="game-over-overlay" id="game-over-overlay" hidden>
+          <div class="game-over-box">
+            <p class="game-over-message" id="game-over-message">Игра окончена</p>
+            <div class="game-over-save" id="game-over-save">
+              <label for="player-name">Ваше имя</label>
+              <input type="text" id="player-name" placeholder="Введите имя" maxlength="30" autocomplete="name">
+              <button type="button" class="btn btn-primary" id="btn-save-result">Сохранить результат</button>
+            </div>
+            <p class="game-over-saved" id="game-over-saved" hidden>Ваш рекорд сохранён</p>
+            <button type="button" class="btn btn-primary btn-restart-icon" id="btn-restart-overlay" aria-label="Начать заново">Заново</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- для телефона -->
+      <div class="controls-mobile" id="controls-mobile" hidden aria-hidden="true">
+        <button type="button" class="control-btn" id="btn-up" aria-label="Вверх">↑</button>
+        <div class="controls-row">
+          <button type="button" class="control-btn" id="btn-left" aria-label="Влево">←</button>
+          <button type="button" class="control-btn" id="btn-right" aria-label="Вправо">→</button>
+        </div>
+        <button type="button" class="control-btn" id="btn-down" aria-label="Вниз">↓</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- модальное окно с лидерблрдом -->
+  <div class="modal-overlay" id="leaders-modal" hidden aria-modal="true" aria-labelledby="leaders-title" role="dialog">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="leaders-title">Таблица лидеров</h2>
+        <button type="button" class="modal-close" id="btn-close-leaders" aria-label="Закрыть">×</button>
+      </div>
+      <div class="modal-body">
+        <table class="leaders-table">
+          <thead>
+            <tr>
+              <th>Имя</th>
+              <th>Очки</th>
+              <th>Дата</th>
+            </tr>
+          </thead>
+          <tbody id="leaders-tbody">
+            <tr><td colspan="3">Пока нет рекордов</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
