@@ -11,6 +11,11 @@
   var btnUndo = document.getElementById('btn-undo');
   var btnRestart = document.getElementById('btn-restart');
   var btnRestartOverlay = document.getElementById('btn-restart-overlay');
+  var btnSaveResult = document.getElementById('btn-save-result');
+  var playerNameInput = document.getElementById('player-name');
+  var gameOverSave = document.getElementById('game-over-save');
+  var gameOverSaved = document.getElementById('game-over-saved');
+  var leadersTbody = document.getElementById('leaders-tbody');
   var btnUp = document.getElementById('btn-up');
   var btnDown = document.getElementById('btn-down');
   var btnLeft = document.getElementById('btn-left');
@@ -23,6 +28,93 @@
   var score = 0;
   var cellElements = [];
   var undoState = null;
+
+  var STORAGE_KEY_GAME = '2048-game';
+  var STORAGE_KEY_LEADERS = '2048-leaders';
+
+  function saveGameState() {
+    try {
+      var payload = {
+        grid: grid.slice(),
+        score: score,
+        gameOver: gameOverOverlay && !gameOverOverlay.hidden
+      };
+      localStorage.setItem(STORAGE_KEY_GAME, JSON.stringify(payload));
+    } catch (e) {}
+  }
+
+  function loadGameState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY_GAME);
+      if (!raw) return false;
+      var data = JSON.parse(raw);
+      if (!data.grid || data.grid.length !== SIZE * SIZE) return false;
+      grid = data.grid.slice();
+      score = data.score || 0;
+      if (gameOverOverlay && data.gameOver) {
+        gameOverOverlay.hidden = false;
+      } else if (gameOverOverlay) {
+        gameOverOverlay.hidden = true;
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function getLeaders() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY_LEADERS);
+      if (!raw) return [];
+      var list = JSON.parse(raw);
+      return Array.isArray(list) ? list : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveLeaders(list) {
+    try {
+      list.sort(function (a, b) { return (b.score || 0) - (a.score || 0); });
+      var top = list.slice(0, 10);
+      localStorage.setItem(STORAGE_KEY_LEADERS, JSON.stringify(top));
+    } catch (e) {}
+  }
+
+  function addLeader(name, scoreValue) {
+    var list = getLeaders();
+    list.push({
+      name: String(name).trim() || 'Игрок',
+      score: scoreValue,
+      date: new Date().toLocaleString('ru-RU')
+    });
+    saveLeaders(list);
+  }
+
+  function renderLeadersTable() {
+    if (!leadersTbody) return;
+    var list = getLeaders();
+    leadersTbody.innerHTML = '';
+    if (list.length === 0) {
+      var tr = document.createElement('tr');
+      tr.className = 'empty-row';
+      tr.innerHTML = '<td colspan="3">Пока нет рекордов</td>';
+      leadersTbody.appendChild(tr);
+      return;
+    }
+    for (var i = 0; i < list.length; i++) {
+      var row = list[i];
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + escapeHtml(row.name) + '</td><td>' + row.score + '</td><td>' + escapeHtml(row.date) + '</td>';
+      leadersTbody.appendChild(tr);
+    }
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
 
   function isMobile() {
     return window.matchMedia('(max-width: 480px)').matches;
@@ -186,6 +278,7 @@
       updateControlsVisibility();
     }
     updateUndoButton();
+    saveGameState();
   }
 
   function undo() {
@@ -196,6 +289,7 @@
     render();
     updateScoreDisplay();
     updateUndoButton();
+    saveGameState();
   }
 
   function updateUndoButton() {
@@ -241,11 +335,24 @@
 
     undoState = null;
     if (gameOverOverlay) gameOverOverlay.hidden = true;
+    if (gameOverSave) gameOverSave.hidden = false;
+    if (gameOverSaved) gameOverSaved.hidden = true;
+    if (playerNameInput) playerNameInput.value = '';
     updateControlsVisibility();
     updateUndoButton();
+    saveGameState();
   }
 
   window.addEventListener('game:restart', startGame);
+
+  if (btnSaveResult && playerNameInput) {
+    btnSaveResult.addEventListener('click', function () {
+      addLeader(playerNameInput.value, score);
+      if (gameOverSave) gameOverSave.hidden = true;
+      if (gameOverSaved) gameOverSaved.hidden = false;
+      saveGameState();
+    });
+  }
 
   if (btnUndo) {
     btnUndo.addEventListener('click', undo);
@@ -294,6 +401,7 @@
 
   if (btnLeaders && leadersModal) {
     btnLeaders.addEventListener('click', function () {
+      renderLeadersTable();
       leadersModal.hidden = false;
       updateControlsVisibility();
     });
@@ -309,5 +417,12 @@
   window.addEventListener('resize', updateControlsVisibility);
   updateControlsVisibility();
 
-  startGame();
+  if (cellElements.length !== SIZE * SIZE) buildGrid();
+  if (loadGameState()) {
+    render();
+    updateScoreDisplay();
+    updateUndoButton();
+  } else {
+    startGame();
+  }
 })();
