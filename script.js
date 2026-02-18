@@ -8,6 +8,7 @@
   var scoreEl = document.getElementById('score');
   var btnLeaders = document.getElementById('btn-leaders');
   var btnCloseLeaders = document.getElementById('btn-close-leaders');
+  var btnUndo = document.getElementById('btn-undo');
   var btnRestart = document.getElementById('btn-restart');
   var btnRestartOverlay = document.getElementById('btn-restart-overlay');
   var btnUp = document.getElementById('btn-up');
@@ -21,6 +22,7 @@
   var grid = [];
   var score = 0;
   var cellElements = [];
+  var undoState = null;
 
   function isMobile() {
     return window.matchMedia('(max-width: 480px)').matches;
@@ -137,6 +139,8 @@
 
   function move(direction) {
     if (gameOverOverlay && !gameOverOverlay.hidden) return;
+    var prevUndo = undoState;
+    undoState = { grid: grid.slice(), score: score };
     var before = grid.slice();
     var addScore = 0;
 
@@ -169,14 +173,34 @@
     if (changed) {
       var spawnCount = randomInt(1) + 1;
       for (var k = 0; k < spawnCount; k++) spawnTile();
+    } else {
+      undoState = prevUndo;
     }
 
     render();
     updateScoreDisplay();
 
     if (!hasPossibleMoves()) {
+      undoState = null;
       if (gameOverOverlay) gameOverOverlay.hidden = false;
       updateControlsVisibility();
+    }
+    updateUndoButton();
+  }
+
+  function undo() {
+    if (!undoState || (gameOverOverlay && !gameOverOverlay.hidden)) return;
+    grid = undoState.grid.slice();
+    score = undoState.score;
+    undoState = null;
+    render();
+    updateScoreDisplay();
+    updateUndoButton();
+  }
+
+  function updateUndoButton() {
+    if (btnUndo) {
+      btnUndo.disabled = !undoState;
     }
   }
 
@@ -215,11 +239,17 @@
     render();
     updateScoreDisplay();
 
+    undoState = null;
     if (gameOverOverlay) gameOverOverlay.hidden = true;
     updateControlsVisibility();
+    updateUndoButton();
   }
 
   window.addEventListener('game:restart', startGame);
+
+  if (btnUndo) {
+    btnUndo.addEventListener('click', undo);
+  }
 
   if (btnRestart) {
     btnRestart.addEventListener('click', function () {

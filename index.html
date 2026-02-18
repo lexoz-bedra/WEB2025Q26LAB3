@@ -15,6 +15,7 @@
         <span class="score-value" id="score">0</span>
       </div>
       <div class="header-actions">
+        <button type="button" class="btn btn-secondary" id="btn-undo" aria-label="Отмена хода">Отмена хода</button>
         <button type="button" class="btn btn-secondary" id="btn-leaders" aria-label="Таблица лидеров">Лидеры</button>
         <button type="button" class="btn btn-primary" id="btn-restart" aria-label="Начать заново">Новая игра</button>
       </div>
@@ -22,10 +23,7 @@
 
     <main class="game-wrapper">
       <div class="game-board">
-        <div class="game-grid" id="game-grid" role="grid" aria-label="Игровое поле 2048">
-          <!-- переносим сетку на js -->
-        </div>
-
+        <div class="game-grid" id="game-grid" role="grid" aria-label="Игровое поле 2048"></div>
         <div class="game-over-overlay" id="game-over-overlay" hidden>
           <div class="game-over-box">
             <p class="game-over-message" id="game-over-message">Игра окончена</p>
