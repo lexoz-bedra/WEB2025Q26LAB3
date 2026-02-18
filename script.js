@@ -28,6 +28,7 @@
   var score = 0;
   var cellElements = [];
   var undoState = null;
+  var lastRenderedGrid = [];
 
   var STORAGE_KEY_GAME = '2048-game';
   var STORAGE_KEY_LEADERS = '2048-leaders';
@@ -169,14 +170,16 @@
     for (var i = 0; i < cellElements.length; i++) {
       var cell = cellElements[i];
       var value = grid[i];
+      var changed = value !== lastRenderedGrid[i];
       cell.innerHTML = '';
       if (value > 0) {
         var tile = document.createElement('div');
-        tile.className = 'tile tile-' + value;
+        tile.className = 'tile tile-' + value + (changed ? ' tile-appear' : '');
         tile.textContent = value;
         cell.appendChild(tile);
       }
     }
+    lastRenderedGrid = grid.slice();
   }
 
   function updateScoreDisplay() {
@@ -323,6 +326,7 @@
     grid = new Array(SIZE * SIZE);
     for (var i = 0; i < grid.length; i++) grid[i] = 0;
     score = 0;
+    lastRenderedGrid = [];
 
     if (cellElements.length !== SIZE * SIZE) {
       buildGrid();
