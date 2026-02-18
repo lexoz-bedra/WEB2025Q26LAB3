@@ -89,6 +89,118 @@
     if (scoreEl) scoreEl.textContent = score;
   }
 
+  function getRow(row) {
+    var r = [];
+    for (var c = 0; c < SIZE; c++) r.push(grid[row * SIZE + c]);
+    return r;
+  }
+
+  function setRow(row, values) {
+    for (var c = 0; c < SIZE; c++) grid[row * SIZE + c] = values[c];
+  }
+
+  function getCol(col) {
+    var r = [];
+    for (var rn = 0; rn < SIZE; rn++) r.push(grid[rn * SIZE + col]);
+    return r;
+  }
+
+  function setCol(col, values) {
+    for (var rn = 0; rn < SIZE; rn++) grid[rn * SIZE + col] = values[rn];
+  }
+
+  function slideAndMergeLine(line) {
+    var arr = line.slice();
+    var totalScore = 0;
+    for (;;) {
+      var compact = [];
+      for (var i = 0; i < SIZE; i++) if (arr[i] > 0) compact.push(arr[i]);
+      while (compact.length < SIZE) compact.push(0);
+      var merged = false;
+      for (var i = 0; i < SIZE - 1; i++) {
+        if (compact[i] > 0 && compact[i] === compact[i + 1]) {
+          compact[i] *= 2;
+          totalScore += compact[i];
+          compact[i + 1] = 0;
+          merged = true;
+          i++;
+        }
+      }
+      var next = [];
+      for (var i = 0; i < SIZE; i++) if (compact[i] > 0) next.push(compact[i]);
+      while (next.length < SIZE) next.push(0);
+      arr = next;
+      if (!merged) break;
+    }
+    return { line: arr, score: totalScore };
+  }
+
+  function move(direction) {
+    if (gameOverOverlay && !gameOverOverlay.hidden) return;
+    var before = grid.slice();
+    var addScore = 0;
+
+    if (direction === DIRECTION.LEFT || direction === DIRECTION.RIGHT) {
+      for (var row = 0; row < SIZE; row++) {
+        var arr = getRow(row);
+        if (direction === DIRECTION.RIGHT) arr.reverse();
+        var result = slideAndMergeLine(arr);
+        if (direction === DIRECTION.RIGHT) result.line.reverse();
+        setRow(row, result.line);
+        addScore += result.score;
+      }
+    } else {
+      for (var col = 0; col < SIZE; col++) {
+        var arr = getCol(col);
+        if (direction === DIRECTION.DOWN) arr.reverse();
+        var result = slideAndMergeLine(arr);
+        if (direction === DIRECTION.DOWN) result.line.reverse();
+        setCol(col, result.line);
+        addScore += result.score;
+      }
+    }
+
+    var changed = false;
+    for (var i = 0; i < grid.length; i++) {
+      if (grid[i] !== before[i]) { changed = true; break; }
+    }
+    score += addScore;
+
+    if (changed) {
+      var spawnCount = randomInt(1) + 1;
+      for (var k = 0; k < spawnCount; k++) spawnTile();
+    }
+
+    render();
+    updateScoreDisplay();
+
+    if (!hasPossibleMoves()) {
+      if (gameOverOverlay) gameOverOverlay.hidden = false;
+      updateControlsVisibility();
+    }
+  }
+
+  function hasPossibleMoves() {
+    if (getEmptyIndices().length > 0) return true;
+    for (var r = 0; r < SIZE; r++) {
+      for (var c = 0; c < SIZE - 1; c++) {
+        var i = r * SIZE + c;
+        if (grid[i] === grid[i + 1]) return true;
+      }
+    }
+    for (var c = 0; c < SIZE; c++) {
+      for (var r = 0; r < SIZE - 1; r++) {
+        var i = r * SIZE + c;
+        if (grid[i] === grid[i + SIZE]) return true;
+      }
+    }
+    return false;
+  }
+
+  window.addEventListener('game:move', function (e) {
+    if (e.detail && e.detail.direction) move(e.detail.direction);
+  });
+
   function startGame() {
     grid = new Array(SIZE * SIZE);
     for (var i = 0; i < grid.length; i++) grid[i] = 0;
